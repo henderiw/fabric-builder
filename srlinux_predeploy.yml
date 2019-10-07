@@ -1,0 +1,5 @@
+---
+- hosts: ipfabric
+  gather_facts: no
+  roles:
+    - srlinux-predeploy

@@ -1,0 +1,11 @@
+---
+- hosts: ipfabric
+  gather_facts: no
+  serial: 1
+  vars:
+    cli:
+      username: admin
+      password: admin
+      transport: cli
+  roles:
+    - srlinux-deploy

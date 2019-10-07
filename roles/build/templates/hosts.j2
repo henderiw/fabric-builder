@@ -1,0 +1,19 @@
+localhost ansible_python_interpreter=/usr/bin/python 
+
+[all_servers:children]
+spines
+leafs
+
+[ipfabric:children]
+spines
+leafs
+
+[spines]
+{% for spine in autofabric.spines %}
+{{ spine.hostname }} ansible_host={{ ipfabric.addressing.mgmt_ipv4 | ipaddr(spine.nodeid + 2) }}
+{% endfor %}
+
+[leafs]
+{% for leaf in autofabric.leafs %}
+{{ leaf.hostname }} ansible_host={{ipfabric.addressing.mgmt_ipv4 | ipaddr(leaf.nodeid + (autofabric.spines | length) + 2) }}
+{% endfor %}

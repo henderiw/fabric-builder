@@ -1,0 +1,330 @@
+routing-policy {
+    prefix-set loopbacks {
+        prefix {{fabric.addressing.loopback_ipv4}} mask-length-range 32..32 {
+        }
+        prefix {{fabric.addressing.loopback_ipv6}} mask-length-range 128..128 {
+        }
+    }
+{% if fabric.role == "spine" %}
+    prefix-set point-to-point {
+        prefix {{fabric.addressing.p2p_ipv4}} mask-length-range 24..24 {
+        }
+        prefix {{fabric.addressing.p2p_ipv6}} mask-length-range 120..120 {
+        }
+    }
+{% endif %}
+{% if fabric.role == "leaf" %}
+    prefix-set access-baremetal {
+        prefix {{fabric.addressing.access_baremetal_ipv4}} mask-length-range 24..29 {
+        }
+        prefix {{fabric.addressing.access_baremetal_ipv6}} mask-length-range 120..125 {
+        }
+    }
+{% endif %}
+    community-set underlay-no-export {
+        member [
+            64512:65281
+        ]
+    }
+    community-set underlay-localpref-50 {
+        member [
+            64512:1050
+        ]
+    }
+    community-set underlay-localpref-100 {
+        member [
+            64512:1100
+        ]
+    }
+    community-set underlay-localpref-150 {
+        member [
+            64512:1150
+        ]
+    }
+{% if fabric.role == "spine" %}
+    policy to-everyone {
+        statement 10 {
+            match {
+                prefix-set loopbacks
+                protocol local
+            }
+            action {
+                accept {
+                }
+            }
+        }
+        statement 20 {
+            match {
+                prefix-set point-to-point
+                protocol aggregate
+            }
+            action {
+                accept {
+                }
+            }
+        }
+        default-action {
+            accept {
+            }
+        }
+    }
+    policy to-everyone_MAINT {
+        statement 10 {
+            match {
+                prefix-set loopbacks
+                protocol local
+            }
+            action {
+                accept {
+                    bgp {
+                        as-path {
+                            prepend {
+                            as-number {{ router.asn }}
+                            repeat-n 3
+                            }
+                        }
+                        communities {
+                            add underlay-localpref-50
+                        }
+                    }
+                }
+            }
+        }
+        statement 20 {
+            match {
+                prefix-set point-to-point
+                protocol aggregate
+            }
+            action {
+                accept {
+                    bgp {
+                        as-path {
+                            prepend {
+                            as-number {{ router.asn }}
+                            repeat-n 3
+                            }
+                        }
+                        communities {
+                            add underlay-localpref-50
+                        }
+                    }
+                }
+            }
+        }
+        default-action {
+            accept {
+            }
+        }
+    }
+{% endif %}
+{% if fabric.role == "leaf" %}
+    policy to-spine {
+        statement 10 {
+            match {
+                prefix-set loopbacks
+                protocol local
+            }
+            action {
+                accept {
+                }
+            }
+        }
+        statement 20 {
+            match {
+                prefix-set access-baremetal
+                protocol local
+            }
+            action {
+                accept {
+                }
+            }
+        }
+        default-action {
+            reject {
+            }
+        }
+    }
+    policy to-spine_MAINT {
+        statement 10 {
+            match {
+                prefix-set loopbacks
+                protocol local
+            }
+            action {
+                accept {
+                    bgp {
+                        as-path {
+                            prepend {
+                            as-number {{ router.asn }}
+                            repeat-n 3
+                            }
+                        }
+                        communities {
+                            add underlay-localpref-50
+                        }
+                    }
+                }
+            }
+        }
+        statement 20 {
+            match {
+                prefix-set access-baremetal
+                protocol local
+            }
+            action {
+                accept {
+                    bgp {
+                        as-path {
+                            prepend {
+                            as-number {{ router.asn }}
+                            repeat-n 3
+                            }
+                        }
+                        communities {
+                            add underlay-localpref-50
+                        }
+                    }
+                }
+            }
+        }
+        default-action {
+            reject {
+            }
+        }
+    }
+{% endif %}
+    policy BGP-TE-IN {
+        statement 50 {
+            match {
+                bgp {
+                    community-set underlay-localpref-50
+                }
+            }
+            action {
+                next-policy {
+                }
+            }
+        }
+        statement 100 {
+            match {
+                bgp {
+                    community-set underlay-localpref-100
+                }
+            }
+            action {
+                next-policy {
+                }
+            }
+        }
+        statement 150 {
+            match {
+                bgp {
+                    community-set underlay-localpref-150
+                }
+            }
+            action {
+                next-policy {
+                }
+            }
+        }
+        default-action {
+            next-policy {
+            }
+        }
+    }
+}
+
+{% for interface  in router.interface_list %}
+interface {{ interface.name }} {
+    admin-state enable
+    description "{{ interface.description }}"
+    subinterface 1 {
+        admin-state enable
+        ipv4 {
+            address {{ interface.ipv4_address }} {
+            }
+         }
+         ipv6 {
+            address {{ interface.ipv6_address }} {
+            }
+        }
+    }
+}
+{% endfor %}
+
+network-instance default {
+    admin-state enable
+    type ip-vrf
+    admin-state enable
+    ip-forwarding {
+        receive-ipv4-check true
+        receive-ipv6-check true
+    }
+{% if router.aggregate_list is defined %}
+    aggregate-routes {
+{% for aggregate in router.aggregate_list %}
+        route {{ aggregate.route }} {
+            admin-state enable
+            summary-only true
+        }
+{% endfor %}
+    }
+{% endif %}
+
+{% for interface  in router.interface_list %}
+    interface {{ interface.sub_port }} {
+    }
+{% endfor %}
+    protocols {
+        bgp {
+            autonomous-system {{ router.asn }}
+            router-id {{ router.system_ipv4 }}
+            ebgp-default-policy {
+                import-reject-all false
+                export-reject-all true
+            }
+{% if router.bgp.group_list is defined %}
+{% for group in router.bgp.group_list %}
+{% for key, value in group.items() %}
+            group {{ key }} {
+                admin-state enable
+                ipv4-unicast {
+                    admin-state enable
+                }
+                ipv6-unicast {
+                    admin-state enable
+                }
+                failure-detection {
+                    fast-failover true
+                }
+{% if value.import is defined %}
+                import-policy "{{ value.import }}"
+{% endif %}
+{% if value.export is defined %}
+                export-policy "{{ value.export }}"
+{% endif %}
+
+            }
+{% if value.neighbor_list is defined %}
+{% for neighbor in value.neighbor_list %}
+            neighbor {{ neighbor.address }} {
+                peer-as {{ neighbor.peer_as }}
+                peer-group {{ key }}
+                local-as {{ router.asn }} {
+                }
+            }
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+        }
+        linux {
+            export-routes true
+            export-neighbors true
+        }
+    }
+}
+
+
+

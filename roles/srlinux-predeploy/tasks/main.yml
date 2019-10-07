@@ -1,0 +1,10 @@
+---
+- name: Create the host-specific build directory
+  file: path={{ playbook_dir }}/build/{{ inventory_hostname }}/ state=directory
+  connection: local
+
+- name: Setup srlinux configuration files
+  template: src={{ item }}.j2 backup=no dest={{ playbook_dir }}/build/{{ inventory_hostname }}/{{item}}
+  with_items:
+    - config.cfg
+  connection: local

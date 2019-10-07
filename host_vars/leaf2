@@ -1,0 +1,82 @@
+---
+
+
+fabric:
+  role: leaf 
+  nodeid: 1
+  addressing:
+    p2p_ipv4: '100.66.0.0/20'
+    loopback_ipv4: '100.64.0.0/24'
+    access_baremetal_ipv4: '100.96.0.0/16'
+    p2p_ipv6: '::ffff:100.66.0.0/116'
+    loopback_ipv6: '::ffff:100.64.0.0/120'
+    access_baremetal_ipv6: '::ffff:100.96.0.0/112'
+
+
+port_list:
+  - { id: 'ethernet-1/1', description: 'spine1 ethernet-1/2', encap_type: 'dot1q', hold_time: '10', media_mode: 'veth', oper_group: 'uplinks-oper-group', qos_policy: '100' }
+  - { id: 'ethernet-1/2', description: 'spine2 ethernet-1/2', encap_type: 'dot1q', hold_time: '10', media_mode: 'veth', oper_group: 'uplinks-oper-group', qos_policy: '100' }
+  - { id: 'ethernet-1/3', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/4', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/5', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  media_mode: 'veth',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/6', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/7', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/8', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/9', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  media_mode: 'veth',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/10', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/11', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/12', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/13', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  media_mode: 'veth',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/14', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/15', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/16', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/17', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  media_mode: 'veth',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/18', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/19', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/20', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/21', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  media_mode: 'veth',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/22', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/23', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/24', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/25', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  media_mode: 'veth',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/26', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/27', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/28', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/29', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  media_mode: 'veth',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/30', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/31', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/32', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/33', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  media_mode: 'veth',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/34', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/35', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+  - { id: 'ethernet-1/36', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40',  autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+
+router:
+  interface_list:
+    - { name: 'ethernet-1/1', description: 'to-spine-1_1 ethernet-1/2', ipv4_address: '100.66.0.5/30', ipv6_address: '::ffff:100.66.0.5/126' ,sub_port: 'ethernet-1/1.1'}
+    - { name: 'ethernet-1/2', description: 'to-spine-2_1 ethernet-1/2', ipv4_address: '100.66.1.5/30', ipv6_address: '::ffff:100.66.1.5/126' ,sub_port: 'ethernet-1/2.1'}
+    - { name: 'lo0', description: 'Sytem Loopback Interface', ipv4_address: '100.64.0.1/32', ipv6_address: '::ffff:100.64.0.1/128', sub_port: 'lo0.1' }
+  ecmp: '16'
+  asn: '65002'
+  system_ipv4: '100.64.0.1'
+  system_ipv6: '::ffff:100.64.0.1'
+  bgp:
+    general:
+      min_route_advertisement: '1'
+      multipath: '16'
+      enable_peer_tracking: True
+      rapid_withdrawal: True
+      rapid_update: 'evpn'
+      next_hop_resolution: 'use-bgp-routes'
+    group_list:
+      - underlay-to-spine:
+          family: 'ipv4'
+          loop_detect: 'off'
+          type: 'external'
+          import: 'BGP-TE-IN'
+          export: 'to-spine'
+          neighbor_list:
+            - { address: '100.66.0.6', peer_as: '64601' }
+            - { address: '::ffff:100.66.0.6', peer_as: '64601' }
+            - { address: '100.66.1.6', peer_as: '64601' }
+            - { address: '::ffff:100.66.1.6', peer_as: '64601' }

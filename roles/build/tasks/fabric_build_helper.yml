@@ -1,0 +1,30 @@
+---
+- name: set ipfabric_check
+  set_fact: ipfabric_check={{ipfabric is defined}}
+
+- name: Assign empty list to fabric if it is undefined
+  set_fact: ipfabric= default([])
+  when: not ipfabric_check
+
+- name: "Initialize autofabric variable"
+  set_fact: autofabric="{{ ipfabric | ipfabric_build_vars}}"
+
+- name: "[DEBUG] [FABRIC-BUILDER] output generated 'autofabric' vars"
+  debug:
+    msg: "{{ autofabric }}"
+
+- name: "[FABRIC-BUILDER] Generate host_vars for spine layer"
+  template: src=spine.j2 backup=no dest={{ playbook_dir }}/host_vars/{{ spine.hostname }}
+  with_indexed_items: "{{ autofabric.spines }}"
+  vars:
+    nodeid: "{{ item.0 }}"
+    spine: "{{ item.1 }}"
+    ipfabric: "{{ autofabric }}"
+
+- name: "[FABRIC-BUILDER] Generate host_vars for leaf layer"
+  template: src=leaf.j2 backup=no dest={{ playbook_dir }}/host_vars/{{ leaf.hostname }}
+  with_indexed_items: "{{ autofabric.leafs }}"
+  vars:
+    nodeid: "{{ item.0 }}"
+    leaf: "{{ item.1 }}"
+    ipfabric: "{{ autofabric }}"

@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+
+  pre_tasks:
+    - name: Check for Ansible version 2.2 (minimum)
+      assert:
+        that: "ansible_version.major == 2 and ansible_version.minor >= 2"
+        msg:  "Only Ansible version 2.2 or greater is supported by Fabric-Builder, you are using {{ansible_version.full}}"
+    - name: Set build_vars variable
+      set_fact:
+        build_vars: "{{ build_vars_file | default ('build_vars.yml') }}"
+    - name: Include build variable files
+      include_vars: "{{ build_vars }}"
+
+  roles:
+    - build

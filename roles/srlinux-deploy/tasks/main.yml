@@ -1,0 +1,23 @@
+---
+- name: copy config file to {{ inventory_hostname }}
+  connection: local
+  expect:
+    command: "scp {{ playbook_dir }}/build/{{ inventory_hostname }}/config.cfg admin@{{ ansible_host }}:"
+    responses:
+      (?i)password: "admin"
+    timeout: "10"
+  remote_user: "admin"
+
+- name: load config from on {{ inventory_hostname }}
+  connection: local
+  sros_command:
+    commands: source config.cfg
+    provider: "{{ cli }}"
+  remote_user: "admin"
+
+- name: commit config on {{ inventory_hostname }}
+  connection: local
+  sros_command:
+    commands: commit stay
+    provider: "{{ cli }}"
+  remote_user: "admin"

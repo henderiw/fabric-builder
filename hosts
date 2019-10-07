@@ -1,0 +1,20 @@
+localhost ansible_python_interpreter=/usr/bin/python 
+
+[all_servers:children]
+spines
+leafs
+
+[ipfabric:children]
+spines
+leafs
+
+[spines]
+spine1 ansible_host=172.19.19.3
+spine2 ansible_host=172.19.19.4
+
+[leafs]
+leaf1 ansible_host=172.19.19.2
+leaf2 ansible_host=172.19.19.5
+
+
+

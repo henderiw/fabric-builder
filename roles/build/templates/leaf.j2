@@ -1,0 +1,61 @@
+---
+
+{% set nodeid = nodeid | int %}
+{% set rackid = (nodeid // 2)| int %}
+
+fabric:
+  role: leaf 
+  nodeid: {{ nodeid }}
+  addressing:
+    p2p_ipv4: '{{ ipfabric.addressing.p2p_ipv4 }}'
+    loopback_ipv4: '{{ ipfabric.addressing.loopback_ipv4 }}'
+    access_baremetal_ipv4: '{{ ipfabric.addressing.access_baremetal_ipv4 }}'
+    p2p_ipv6: '{{ ipfabric.addressing.p2p_ipv4 | ipv4('ipv6') }}'
+    loopback_ipv6: '{{ ipfabric.addressing.loopback_ipv4 | ipv4('ipv6') }}'
+    access_baremetal_ipv6: '{{ ipfabric.addressing.access_baremetal_ipv4 | ipv4('ipv6') }}'
+
+{% set p2p_ipv4 = ipfabric.addressing.p2p_ipv4 %}
+{% set p2p_ipv6 = ipfabric.addressing.p2p_ipv4 | ipv4('ipv6') %}
+{% set access_baremetal_mh_ipv4 = ipfabric.addressing.access_baremetal_ipv4 | ipsubnet(24,rackid) %}
+{% set access_baremetal_mh_ipv6 = ipfabric.addressing.access_baremetal_ipv4 | ipsubnet(24,rackid) | ipv4('ipv6') %}
+{% set system_ipv4 = ipfabric.addressing.loopback_ipv4 | ipsubnet(25,0) | ipsubnet(32,nodeid) %}
+{% set system_ipv6 = ipfabric.addressing.loopback_ipv4 | ipsubnet(25,0) | ipsubnet(32,nodeid) | ipv4('ipv6') %}
+
+port_list:
+{% for local_port, value in leaf.port_list.iteritems() | sort %}
+  - { id: '{{ local_port | ipfabric_portIndex_to_ethosPort }}', description: '{{ipfabric.spine.hostname}}{{value.spineid}} {{value.remote | ipfabric_portIndex_to_ethosPort }}', encap_type: 'dot1q', hold_time: '10', media_mode: '{{ ipfabric.leaf.uplink.media_mode }}', oper_group: 'uplinks-oper-group', qos_policy: '100' }
+{% endfor %}
+{% for port in ipfabric.leaf.downlink | ipfabric_generate_port_range %}
+  - { id: '{{ port | ipfabric_portIndex_to_ethosPort }}', description: 'Compute/Storage Server', encap_type: 'dot1q', hold_time: '40', {% if port is divisibleby 4 %} media_mode: '{{ipfabric.leaf.downlink.media_mode}}', {% endif %} autonegotiate: False,  monitor_oper_group: 'uplinks-oper-group', dynamic_service_profile: 'bare-metal-profile', qos_policy: '25' }
+{% endfor %}
+
+router:
+  interface_list:
+{% for local_port, value in leaf.port_list.iteritems() | sort %}
+    - { name: '{{ local_port | ipfabric_portIndex_to_ethosPort }}', description: 'to-spine-{{value.spineid}}_{{value.intindex}} {{value.remote | ipfabric_portIndex_to_ethosPort}}', ipv4_address: '{{ p2p_ipv4 | ipsubnet(24,value.spineid-1) | ipsubnet(30,value.remote) | ipaddr('1')}}', ipv6_address: '{{ p2p_ipv4 | ipsubnet(24,value.spineid-1) | ipsubnet(30,value.remote) | ipaddr('1') | ipv4('ipv6')}}' ,sub_port: '{{ local_port | ipfabric_portIndex_to_ethosPort }}.1'}
+{% endfor %}
+    - { name: 'lo0', description: 'Sytem Loopback Interface', ipv4_address: '{{ system_ipv4 }}', ipv6_address: '{{ system_ipv6 }}', sub_port: 'lo0.1' }
+  ecmp: '16'
+  asn: '{{ ipfabric.leaf.asn_base + nodeid + 1}}'
+  system_ipv4: '{{ system_ipv4 | ipaddr('address') }}'
+  system_ipv6: '{{ system_ipv6 | ipaddr('address') }}'
+  bgp:
+    general:
+      min_route_advertisement: '1'
+      multipath: '16'
+      enable_peer_tracking: True
+      rapid_withdrawal: True
+      rapid_update: 'evpn'
+      next_hop_resolution: 'use-bgp-routes'
+    group_list:
+      - underlay-to-spine:
+          family: 'ipv4'
+          loop_detect: 'off'
+          type: 'external'
+          import: 'BGP-TE-IN'
+          export: 'to-spine'
+          neighbor_list:
+{% for local_port, value in leaf.port_list.iteritems() | sort %}
+            - { address: '{{ p2p_ipv4 | ipsubnet(24,value.spineid-1) | ipsubnet(30,value.remote) | ipaddr('2') | ipaddr('address')}}', peer_as: '{{ ipfabric.spine.asn_base }}' }
+            - { address: '{{ p2p_ipv4 | ipsubnet(24,value.spineid-1) | ipsubnet(30,value.remote) | ipaddr('2') | ipv4('ipv6') | ipaddr('address')}}', peer_as: '{{ ipfabric.spine.asn_base }}' }
+{% endfor %}

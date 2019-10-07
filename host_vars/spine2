@@ -1,0 +1,49 @@
+---
+
+fabric:
+  role: spine
+  nodeid: 1
+  addressing:
+    p2p_ipv4: '100.66.0.0/20'
+    loopback_ipv4: '100.64.0.0/24'
+    access_baremetal_ipv4: '100.96.0.0/16'
+    p2p_ipv6: '::ffff:100.66.0.0/116'
+    loopback_ipv6: '::ffff:100.64.0.0/120'
+    access_baremetal_ipv6: '::ffff:100.96.0.0/112'
+
+port_list:
+  - { id: 'ethernet-1/1', description: 'leaf1 ethernet-1/2', encap_type: 'dot1q', hold_time: '10', media_mode: '100G' }
+  - { id: 'ethernet-1/2', description: 'leaf2 ethernet-1/2', encap_type: 'dot1q', hold_time: '10', media_mode: '100G' }
+
+router:
+  interface_list:
+    - { name: 'ethernet-1/1', description: 'to-leaf-1_1 ethernet-1/2', ipv4_address: '100.66.1.2/30', ipv6_address: '::ffff:100.66.1.2/126' , sub_port: 'ethernet-1/1.1' }
+    - { name: 'ethernet-1/2', description: 'to-leaf-2_1 ethernet-1/2', ipv4_address: '100.66.1.6/30', ipv6_address: '::ffff:100.66.1.6/126' , sub_port: 'ethernet-1/2.1' }
+    - { name: 'lo0', description: 'Sytem Loopback Interface', ipv4_address: '100.64.0.225/32', ipv6_address: '::ffff:100.64.0.225/128', sub_port: 'lo0.1' }
+  ecmp: '16'
+  asn: '64601'
+  system_ipv4: '100.64.0.225'
+  system_ipv6: '::ffff:100.64.0.225'
+  aggregate_list:
+    - { route: '100.66.1.0/24' }
+    - { route: '::ffff:100.66.1.0/120' }
+  bgp:
+    general:
+      min_route_advertisement: '1'
+      multipath: '16'
+      enable_peer_tracking: True
+      rapid_withdrawal: True
+      rapid_update: 'evpn'
+      next_hop_resolution: 'use-bgp-routes'
+    group_list:
+      - underlay-to-leaf:
+          family: 'ipv4'
+          loop_detect: 'discard-route'
+          type: 'external'
+          import: 'BGP-TE-IN'
+          export: 'to-everyone'
+          neighbor_list:
+            - { address: '100.66.1.1', peer_as: '65001' }
+            - { address: '::ffff:100.66.1.1', peer_as: '65001' }
+            - { address: '100.66.1.5', peer_as: '65002' }
+            - { address: '::ffff:100.66.1.5', peer_as: '65002' }

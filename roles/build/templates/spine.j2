@@ -1,0 +1,57 @@
+---
+
+{% set nodeid = nodeid | int %}
+fabric:
+  role: spine
+  nodeid: {{ nodeid }}
+  addressing:
+    p2p_ipv4: '{{ ipfabric.addressing.p2p_ipv4 }}'
+    loopback_ipv4: '{{ ipfabric.addressing.loopback_ipv4 }}'
+    access_baremetal_ipv4: '{{ ipfabric.addressing.access_baremetal_ipv4 }}'
+    p2p_ipv6: '{{ ipfabric.addressing.p2p_ipv4 | ipv4('ipv6') }}'
+    loopback_ipv6: '{{ ipfabric.addressing.loopback_ipv4 | ipv4('ipv6') }}'
+    access_baremetal_ipv6: '{{ ipfabric.addressing.access_baremetal_ipv4 | ipv4('ipv6') }}'
+
+{% set addressing = ipfabric.addressing %}
+{% set aggregate_ipv4 = ipfabric.addressing.p2p_ipv4 | ipsubnet(24,nodeid) %}
+{% set aggregate_ipv6 = ipfabric.addressing.p2p_ipv4 | ipsubnet(24,nodeid) | ipv4('ipv6') %}
+{% set system_ipv4 = ipfabric.addressing.loopback_ipv4 | ipsubnet(28,14) | ipsubnet(32,nodeid) %}
+{% set system_ipv6 = ipfabric.addressing.loopback_ipv4 | ipsubnet(28,14) | ipsubnet(32,nodeid) | ipv4('ipv6') %}
+port_list:
+{% for local_port, value in spine.port_list.iteritems() | sort %}
+  - { id: '{{ local_port | ipfabric_portIndex_to_ethosPort }}', description: '{{ipfabric.leaf.hostname}}{{value.leafid}} {{value.remote | ipfabric_portIndex_to_ethosPort }}', encap_type: 'dot1q', hold_time: '10', media_mode: '100G' }
+{% endfor %}
+
+router:
+  interface_list:
+{% for local_port, value in spine.port_list.iteritems() | sort %}
+    - { name: '{{ local_port | ipfabric_portIndex_to_ethosPort }}', description: 'to-leaf-{{value.leafid}}_{{value.intindex}} {{value.remote | ipfabric_portIndex_to_ethosPort}}', ipv4_address: '{{ aggregate_ipv4 | ipsubnet(30,local_port) | ipaddr('2')}}', ipv6_address: '{{ aggregate_ipv4 | ipsubnet(30,local_port) | ipaddr('2') | ipv4('ipv6')}}' , sub_port: '{{ local_port | ipfabric_portIndex_to_ethosPort }}.1' }
+{% endfor %}
+    - { name: 'lo0', description: 'Sytem Loopback Interface', ipv4_address: '{{ system_ipv4 }}', ipv6_address: '{{ system_ipv6 }}', sub_port: 'lo0.1' }
+  ecmp: '16'
+  asn: '{{ ipfabric.spine.asn_base }}'
+  system_ipv4: '{{ system_ipv4 | ipaddr('address') }}'
+  system_ipv6: '{{ system_ipv6 | ipaddr('address') }}'
+  aggregate_list:
+    - { route: '{{ aggregate_ipv4 }}' }
+    - { route: '{{ aggregate_ipv6 }}' }
+  bgp:
+    general:
+      min_route_advertisement: '1'
+      multipath: '16'
+      enable_peer_tracking: True
+      rapid_withdrawal: True
+      rapid_update: 'evpn'
+      next_hop_resolution: 'use-bgp-routes'
+    group_list:
+      - underlay-to-leaf:
+          family: 'ipv4'
+          loop_detect: 'discard-route'
+          type: 'external'
+          import: 'BGP-TE-IN'
+          export: 'to-everyone'
+          neighbor_list:
+{% for local_port, value in spine.port_list.iteritems() | sort %}
+            - { address: '{{ aggregate_ipv4 | ipsubnet(30,local_port) | ipaddr('1') | ipaddr('address')}}', peer_as: '{{ ipfabric.leaf.asn_base + value.leafid}}' }
+            - { address: '{{ aggregate_ipv4 | ipsubnet(30,local_port) | ipaddr('1') | ipv4('ipv6') | ipaddr('address') }}', peer_as: '{{ ipfabric.leaf.asn_base + value.leafid}}' }
+{% endfor %}

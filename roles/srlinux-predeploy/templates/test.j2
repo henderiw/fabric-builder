@@ -1,0 +1,11 @@
+{% if value.neighbor_list is defined %}
+            {% for neighbor in value.neighbor_list %}
+            neighbor {{ neighbor.address }} {
+                export-policy bgp-export-policy
+                peer-as {{ neighbor.peer_as }}
+                peer-group {{ group.key }}
+                local-as {{ router.asn }} {
+                }
+            }
+            {% endfor %}
+            {% endif %}

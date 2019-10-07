@@ -1,0 +1,47 @@
+---
+ntp_server_list:
+  - 172.19.19.1
+
+ipfabric: 
+  leaf:
+    hostname: 'leaf'
+    amount: 2
+    uplink:
+      media_mode: 'veth'
+      port_range:
+        - {'start': 'ethernet-1/1', 'end': 'ethernet-1/2'}
+    downlink:
+      media_mode: 'veth'
+      port_range:
+        - {'start': 'ethernet-1/3', 'end': 'ethernet-1/36'}
+    hardware: 'ethos'
+    asn_base: 65000
+  spine:
+    hostname: 'spine'
+    amount: 2
+    downlink:
+      media_mode: 'veth'
+      port_range:
+        - {'start': 'ethernet-1/1', 'end': 'ethernet-1/2'}
+    hardware: 'ethos'
+    asn_base: 64601
+  rr:
+    asn_base: 65534
+    neighbor_list:
+      - 100.64.33.1
+      - 100.64.33.2
+  dhcp:
+    server_list:
+      - 100.64.33.1
+      - 100.64.33.2
+  nokia:
+    dcip_version: 2
+  addressing:  # All internal addresses will be taken out of these 
+    p2p_ipv4: '100.66.0.0/20'
+    loopback_ipv4: '100.64.0.0/24'
+    access_baremetal_ipv4: '100.96.0.0/16'
+    mgmt_ipv4: '172.19.19.0/24'
+    p2p_ipv6: '2001:100:66::/64'
+    loopback_ipv6: '2000:100:64::/128'
+    access_baremetal_ipv6: '2002:100:96::/64'
+    mgmt_ipv6: '2001:172:19:19::/128'
